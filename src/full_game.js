@@ -1,11 +1,11 @@
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", () => {
 
   let gameInProgress = false
 
   const startButton = document.getElementById("start-game")
   startButton.addEventListener("click", start_game)
 
-  function start_game(){
+  function start_game() {
     canvas.style = "display:block"
     startButton.style = "display:none"
     gameInProgress = true
@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   const canvas = document.getElementById('canvas')
   const canvas2 = document.getElementById("canvas2")
-  const ctx2 = canvas2.getContext("2d")
   const ctx = canvas.getContext('2d')
 
   const coinImage = document.getElementById("coin-img")
@@ -24,8 +23,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
   const burnerImage = document.getElementById("burner-img")
   const rayImage = document.getElementById("ray-img")
   const ship4Image = document.getElementById("ship4-img")
+  const explosion = document.getElementById('explosion')
 
   let laser = new Sound("./public/laser3.wav")
+
+
 
   //ctx.canvas.width = window.innerWidth
   //ctx.canvas.height = window.innerHeight
@@ -33,7 +35,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 
   //ship specs
-  let shipX = canvas.width/2
+  let shipX = canvas.width / 2
   let shipY = canvas.height * (0.9)
   let xFromCenter = 12.5
   let yUpFromCenter = 33
@@ -65,34 +67,49 @@ document.addEventListener("DOMContentLoaded", ()=>{
   let upPressed = false
   let spacePressed = false
 
-  //sprite rendering
-  function renderCoin(){
-    let portion = timer % 10
-    ctx.drawImage(coinImage, portion * (coinImage.width/10),0, 46, coinImage.height, canvas.width/2, canvas.height/2, coinImage.width/10, coinImage.height)
+  //explosion rendering
+
+  let wfactor = 0
+
+  function explode() {
+    ctx.drawImage(explosion, 64 * wfactor, 0, 64, 64, 250, 250, 64, 64)
+    if (wfactor <= 10) {
+      wfactor++
+    } else {
+      wfactor = 0
+    }
   }
 
 
-  function rand(){
+
+  //sprite rendering
+  function renderCoin() {
+    let portion = timer % 10
+    ctx.drawImage(coinImage, portion * (coinImage.width / 10), 0, 46, coinImage.height, canvas.width / 2, canvas.height / 2, coinImage.width / 10, coinImage.height)
+  }
+
+
+  function rand() {
     return Math.random()
   }
 
   function drawScore() {
-  ctx.font = "16px Arial";
-  ctx.fillStyle = "white";
-  ctx.fillText("Score: "+hitCounter, 8, 20);
-  }
-
-  function drawHitPercentage(){
     ctx.font = "16px Arial";
     ctx.fillStyle = "white";
-    ctx.fillText("Hit Percentage: "+Math.floor((100*hitCounter/bulletCounter))+"%", 335, 20);
+    ctx.fillText("Score: " + hitCounter, 8, 20);
+  }
+
+  function drawHitPercentage() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("Hit Percentage: " + Math.floor((100 * hitCounter / bulletCounter)) + "%", 335, 20);
   }
 
 
-  function drawShip(){
+  function drawShip() {
     ctx.beginPath()
     //ctx.drawImage(shipImage, shipX-xFromCenter, shipY-yUpFromCenter, 50, 75)
-    ctx.drawImage(shipImage, shipX-xFromCenter, shipY-yUpFromCenter, xFromCenter*2, yDownFromCenter + yDownFromCenter)
+    ctx.drawImage(shipImage, shipX - xFromCenter, shipY - yUpFromCenter, xFromCenter * 2, yDownFromCenter + yDownFromCenter)
     // ctx.moveTo(shipX, shipY-yUpFromCenter)
     // ctx.lineTo(shipX - xFromCenter, shipY+yDownFromCenter)
     // ctx.lineTo(shipX + xFromCenter, shipY + yDownFromCenter)
@@ -102,8 +119,16 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   }
 
-  function drawInitialBullet(){
-    let newBullet = new Bullet({x: shipX, y:(shipY-yUpFromCenter), radius: bulletRadius, dx: 0, dy: bulletDy, color: "red", visible: true})
+  function drawInitialBullet() {
+    let newBullet = new Bullet({
+      x: shipX,
+      y: (shipY - yUpFromCenter),
+      radius: bulletRadius,
+      dx: 0,
+      dy: bulletDy,
+      color: "red",
+      visible: true
+    })
 
 
     newBullet.renderSingle(ctx)
@@ -112,24 +137,32 @@ document.addEventListener("DOMContentLoaded", ()=>{
     //laser.play()
   }
 
-  function drawBullets(){
+  function drawBullets() {
     Bullet.renderAll(ctx, rayImage)
   }
 
-  function drawInitialRock(){
-    let newRock = new Rock({x: rand()*(canvas.width), y: (rand()*canvas.height)*0.25, dx:(rand()*3), dy:(rand()*3), radius:(rand()*rockRadius)+15, color: "green", visible: true})
+  function drawInitialRock() {
+    let newRock = new Rock({
+      x: rand() * (canvas.width),
+      y: (rand() * canvas.height) * 0.25,
+      dx: (rand() * 3),
+      dy: (rand() * 3),
+      radius: (rand() * rockRadius) + 15,
+      color: "green",
+      visible: true
+    })
     newRock.renderSingle(ctx)
   }
 
-  function drawRocks(){
+  function drawRocks() {
     Rock.renderAll(ctx, ship4Image)
   }
 
 
-  function checkBulletCollision(){
-    bulletArray.forEach((bullet)=>{
-      rockArray.forEach((rock)=>{
-        if((bullet.x>(rock.x- rock.radius))&&(bullet.x< (rock.x + rock.radius))&&(bullet.y>(rock.y-rock.radius))&&(bullet.y<(rock.y+rock.radius))){
+  function checkBulletCollision() {
+    bulletArray.forEach((bullet) => {
+      rockArray.forEach((rock) => {
+        if ((bullet.x > (rock.x - rock.radius)) && (bullet.x < (rock.x + rock.radius)) && (bullet.y > (rock.y - rock.radius)) && (bullet.y < (rock.y + rock.radius))) {
           rock.visible = false
           bullet.visible = false
           hitCounter++
@@ -139,10 +172,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
   }
 
   //check for collision of ship with enemy
-  function checkShipCollision(){
-    rockArray.forEach((rock)=>{
+  function checkShipCollision() {
+    rockArray.forEach((rock) => {
 
-      if((rock.x>(shipX-xFromCenter)) && (rock.x<(shipX+xFromCenter)) && (rock.y> (shipY-yUpFromCenter)) && (rock.y< (shipY+yDownFromCenter)) ){
+      if ((rock.x > (shipX - xFromCenter)) && (rock.x < (shipX + xFromCenter)) && (rock.y > (shipY - yUpFromCenter)) && (rock.y < (shipY + yDownFromCenter))) {
         //alert("you suck")
         gameInProgress = false
         canvas.style = "display:none"
@@ -152,40 +185,38 @@ document.addEventListener("DOMContentLoaded", ()=>{
   }
 
 
-  function generateStar(canvas, ctx, starRadius){
-			ctx.beginPath();
-			ctx.arc(starRadius + (Math.random() * canvas.width), starRadius + (Math.random() * canvas.height), starRadius*Math.random(), 0, Math.PI*2, false);
-      //ctx.arc(100, 30, starRadius, 0, Math.PI*2, false);
+  function generateStar(canvas, ctx, starRadius) {
+    ctx.beginPath();
+    ctx.arc(starRadius + (Math.random() * canvas.width), starRadius + (Math.random() * canvas.height), starRadius * Math.random(), 0, Math.PI * 2, false);
+    //ctx.arc(100, 30, starRadius, 0, Math.PI*2, false);
 
-      let rand = Math.random();
-      if(rand <= 0.5){
-				  ctx.fillStyle = "rgba(255, 255, 255, 1)";
-				  ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
-				  ctx.shadowBlur = 3;
-			}
-			else if(rand > 0.75){
-				  ctx.fillStyle = "rgba(255, 254, 196, 1)";
-				  ctx.shadowColor = "rgba(255, 254, 196, 0.5)";
-				  ctx.shadowBlur = 4;
-			}
-			else{
-				  ctx.fillStyle = "rgba(192, 247, 255, 1)";
-				  ctx.shadowColor = "rgba(192, 247, 255, 0.5)";
-				  ctx.shadowBlur = 7;
-			}
-			ctx.fill();
-	}
+    let rand = Math.random();
+    if (rand <= 0.5) {
+      ctx.fillStyle = "rgba(255, 255, 255, 1)";
+      ctx.shadowColor = "rgba(255, 255, 255, 0.5)";
+      ctx.shadowBlur = 3;
+    } else if (rand > 0.75) {
+      ctx.fillStyle = "rgba(255, 254, 196, 1)";
+      ctx.shadowColor = "rgba(255, 254, 196, 0.5)";
+      ctx.shadowBlur = 4;
+    } else {
+      ctx.fillStyle = "rgba(192, 247, 255, 1)";
+      ctx.shadowColor = "rgba(192, 247, 255, 0.5)";
+      ctx.shadowBlur = 7;
+    }
+    ctx.fill();
+  }
 
-  function drawBackground(){
+  function drawBackground() {
 
-    if (timer < 90){
+    if (timer < 90) {
       generateStar(canvas2, ctx2, 5)
       requestAnimationFrame(drawBackground)
 
     }
   }
 
-  function draw(){
+  function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
 
@@ -193,35 +224,37 @@ document.addEventListener("DOMContentLoaded", ()=>{
     drawScore()
     drawRocks()
     drawHitPercentage()
+    explode()
 
 
-    //renderCoin()
+
+    // renderCoin()
 
 
     //right movement
-    if (rightPressed && ((shipX+xFromCenter) < canvas.width)){
-      shipX +=shipDx
+    if (rightPressed && ((shipX + xFromCenter) < canvas.width)) {
+      shipX += shipDx
     }
 
     //left movement
-    if (leftPressed && (shipX>xFromCenter)){
-      shipX -=shipDx
+    if (leftPressed && (shipX > xFromCenter)) {
+      shipX -= shipDx
     }
 
     //up movement
-    if (upPressed && (shipY>yUpFromCenter)){
+    if (upPressed && (shipY > yUpFromCenter)) {
       shipY -= shipDy
-      ctx.drawImage(burnerImage,shipX-(xFromCenter*0.75), shipY+yDownFromCenter, 20, 20)
+      ctx.drawImage(burnerImage, shipX - (xFromCenter * 0.75), shipY + yDownFromCenter, 20, 20)
     }
 
     //down movement
-    if (downPressed && ((shipY+yDownFromCenter)<canvas.height)){
+    if (downPressed && ((shipY + yDownFromCenter) < canvas.height)) {
       shipY += shipDy
 
     }
 
     //shoot
-    if (spacePressed && timer %bulletDelay===0){
+    if (spacePressed && timer % bulletDelay === 0) {
       drawInitialBullet()
     }
 
@@ -236,37 +269,37 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 
     // now we deploy a rock
-    if (timer %rockDelay===0){
+    if (timer % rockDelay === 0) {
       drawInitialRock()
     }
 
 
-    if (gameInProgress){
-    requestAnimationFrame(draw)
+    if (gameInProgress) {
+      requestAnimationFrame(draw)
 
     }
 
     timer++
 
-  }//end draw
+  } //end draw
 
 
 
   function keyDownHandler(e) {
-  //right
-    if(e.keyCode == 68) {
-    rightPressed = true;
-    //left
-  }else if(e.keyCode == 65) {
-    leftPressed = true;
-    //up
-  }else if (e.keyCode == 87){
+    //right
+    if (e.keyCode == 68) {
+      rightPressed = true;
+      //left
+    } else if (e.keyCode == 65) {
+      leftPressed = true;
+      //up
+    } else if (e.keyCode == 87) {
       upPressed = true;
-    //down
-  }else if (e.keyCode == 83){
+      //down
+    } else if (e.keyCode == 83) {
       downPressed = true;
-    //space bar
-  }else if (e.keyCode == 74){
+      //space bar
+    } else if (e.keyCode == 74) {
       spacePressed = true
 
     }
@@ -274,20 +307,20 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   function keyUpHandler(e) {
     //right
-    if(e.keyCode == 68) {
+    if (e.keyCode == 68) {
       rightPressed = false;
       //left
-    }else if(e.keyCode == 65) {
+    } else if (e.keyCode == 65) {
       leftPressed = false;
       //up
-    }else if (e.keyCode == 87){
-        upPressed = false;
+    } else if (e.keyCode == 87) {
+      upPressed = false;
       //down
-    }else if (e.keyCode == 83){
-        downPressed = false;
+    } else if (e.keyCode == 83) {
+      downPressed = false;
 
-    //j pressed for shoot
-  }else if (e.keyCode == 74){
+      //j pressed for shoot
+    } else if (e.keyCode == 74) {
       spacePressed = false
 
     }
@@ -304,4 +337,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 
 
-  })
+})
